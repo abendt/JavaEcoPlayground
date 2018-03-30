@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClassName = "demo.DemoServiceKt"
+    mainClassName = "demo.DynamicLoggingDemoKt"
 }
 
 dependencies {

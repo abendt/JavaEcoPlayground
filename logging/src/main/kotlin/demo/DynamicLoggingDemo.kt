@@ -3,7 +3,7 @@ package demo
 import mu.KotlinLogging
 import org.slf4j.MDC
 
-class DemoService {
+class DynamicLoggingDemo {
 
     private val logger = KotlinLogging.logger {}
 
@@ -18,13 +18,13 @@ class DemoService {
 }
 
 fun main(args: Array<String>) {
-    DemoService().logMessage("LogIt Kotlin")
+    DynamicLoggingDemo().logMessage("LogIt Kotlin")
 
     println()
     MDC.put("userId", "user1")
-    DemoService().logMessage("LogIt Kotlin User1")
+    DynamicLoggingDemo().logMessage("LogIt Kotlin User1")
 
     println()
     MDC.put("userId", "user2")
-    DemoService().logMessage("LogIt Kotlin User2")
+    DynamicLoggingDemo().logMessage("LogIt Kotlin User2")
 }
