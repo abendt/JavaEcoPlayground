@@ -1,1 +1,1 @@
-include("logging")
+include("logging", "jackson")
