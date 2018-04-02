@@ -20,7 +20,7 @@ apply {
 }
 
 tasks {
-    "dokkaJavadoc"(DokkaTask::class) {
+    val dokkaJavadoc by creating(DokkaTask::class) {
         outputFormat = "javadoc"
         outputDirectory = "$buildDir/dokkaJavadoc"
     }
