@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.jsontype.TypeIdResolver
 import com.fasterxml.jackson.databind.type.TypeFactory
 import org.reflections.Reflections
 
-
 interface Event {
     val source: String
 }
@@ -64,8 +63,6 @@ class EventTypeIdResolver: TypeIdResolver {
     }
 
     override fun init(baseType: JavaType) {
-        println(baseType.rawClass)
-
         val reflections = Reflections("json")
 
         val subTypes = reflections.getSubTypesOf(baseType.rawClass)
