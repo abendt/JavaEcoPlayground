@@ -16,9 +16,9 @@ allprojects {
         jcenter()
     }
 
-    tasks.withType(KotlinCompile::class.java).all {
+    tasks.withType<KotlinCompile> {
         kotlinOptions {
-           jvmTarget = "1.8"
+            jvmTarget = "1.8"
         }
     }
 }
