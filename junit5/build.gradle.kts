@@ -23,8 +23,8 @@ configure<TestLoggerExtension> {
     setTheme("mocha")
 }
 
-tasks {
-    val test by getting(Test::class) {
-        useJUnitPlatform()
+tasks.withType(Test::class.java) {
+    useJUnitPlatform {
+        includeEngines = setOf("junit-jupiter")
     }
 }
