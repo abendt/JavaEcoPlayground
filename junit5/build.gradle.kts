@@ -5,6 +5,10 @@ plugins {
     id("com.adarshr.test-logger") version "1.2.0"
 }
 
+configure<TestLoggerExtension> {
+    setTheme("mocha")
+}
+
 dependencies {
     testCompile(kotlin("stdlib-jdk8"))
 
@@ -17,10 +21,6 @@ dependencies {
     testRuntimeOnly(
             "org.junit.jupiter:junit-jupiter-engine:5.2.0"
     )
-}
-
-configure<TestLoggerExtension> {
-    setTheme("mocha")
 }
 
 tasks.withType(Test::class.java) {
