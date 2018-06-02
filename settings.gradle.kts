@@ -1,1 +1,1 @@
-include("logging", "jackson", "javadoc", "hystrix", "junit5")
+include("logging", "jackson", "javadoc", "hystrix", "junit5", "websockets")
