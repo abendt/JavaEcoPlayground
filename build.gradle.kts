@@ -8,7 +8,7 @@ buildscript {
 
 plugins {
     base
-    kotlin("jvm") version "1.2.41" apply false
+    kotlin("jvm") version "1.2.50" apply false
 }
 
 allprojects {
