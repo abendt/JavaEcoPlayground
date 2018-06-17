@@ -6,20 +6,18 @@ import com.netflix.hystrix.HystrixCommandProperties
 
 private object DEFAULT {
     val DEFAULT_FALLBACK = { throw RuntimeException() }
-
-    fun <T> defaultFallback(): () -> T = DEFAULT_FALLBACK
 }
 
-fun <T> withHystrix(group: String,
-                    timeout: Int = 1000,
-                    fallback: () -> T = DEFAULT.defaultFallback(),
-                    command: () -> T): T {
+fun <T> hystrixCommand(group: String,
+                    timeout: Int = 2000,
+                    fallback: () -> T = DEFAULT.DEFAULT_FALLBACK,
+                    command: () -> T): HystrixCommand<T> {
     val setter = HystrixCommand.Setter
             .withGroupKey(HystrixCommandGroupKey.Factory.asKey(group))
             .andCommandPropertiesDefaults(
                     HystrixCommandProperties.Setter().withExecutionTimeoutInMilliseconds(timeout))
 
-    val hystrixCommand = if (fallback === DEFAULT.DEFAULT_FALLBACK) {
+    return if (fallback === DEFAULT.DEFAULT_FALLBACK) {
         object : HystrixCommand<T>(setter) {
             override fun run(): T = command()
         }
@@ -30,6 +28,12 @@ fun <T> withHystrix(group: String,
             override fun getFallback(): T = fallback()
         }
     }
+}
 
-    return hystrixCommand.execute()
+fun <T> withHystrix(group: String,
+                    timeout: Int = 1000,
+                    fallback: () -> T = DEFAULT.DEFAULT_FALLBACK,
+                    command: () -> T): T {
+
+    return hystrixCommand(group, timeout, fallback, command).execute()
 }
