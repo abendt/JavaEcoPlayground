@@ -41,7 +41,7 @@ class CommandCompositionTest {
 
             val single = rxSingle {
                 val name = command1().observe()
-                val greeting = command2(name.awaitF irst()).observe()
+                val greeting = command2(name.awaitFirst()).observe()
                 val motd = command3().observe()
 
                 "${greeting.awaitFirst()} ${motd.awaitFirst()}"
