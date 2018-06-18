@@ -9,13 +9,12 @@ class CommandCompositionTest {
     @Test
     fun hystrixCompose2() {
         val time = measureTimeMillis {
-            val t1 = command1().toObservable()
-            val t2 = command1().observe()
+            val t1 = getUserName().toObservable()
+            val t2 = getUserName().observe()
             Thread.sleep(1000)
 
             println(t1.toBlocking().first())
             println(t2.toBlocking().first())
-
         }
 
         println("Time " + time)
@@ -24,10 +23,10 @@ class CommandCompositionTest {
     @Test
     fun hystrixCompose() {
         val time = measureTimeMillis {
-            val name = command1().observe()
-                    .flatMap { command2(it).observe() }
+            val name = getUserName().observe()
+                    .flatMap { sayHelloTo(it).observe() }
 
-            val result = name.zipWith(command3().observe()) { l, r -> "$l $r" }
+            val result = name.zipWith(getMessageOfTheDay().observe()) { l, r -> "$l $r" }
 
             println(result.toBlocking().first())
         }
@@ -40,9 +39,9 @@ class CommandCompositionTest {
         val time = measureTimeMillis {
 
             val single = rxSingle {
-                val name = command1().observe()
-                val greeting = command2(name.awaitFirst()).observe()
-                val motd = command3().observe()
+                val name = getUserName().observe()
+                val greeting = sayHelloTo(name.awaitFirst()).observe()
+                val motd = getMessageOfTheDay().observe()
 
                 "${greeting.awaitFirst()} ${motd.awaitFirst()}"
             }
@@ -53,17 +52,17 @@ class CommandCompositionTest {
         println("Time " + time)
     }
 
-    fun command1() = hystrixCommand("NAME") {
+    fun getUserName() = hystrixCommand("NAME") {
         Thread.sleep(1000)
         "Kotlin"
     }
 
-    fun command2(name: String) = hystrixCommand("HELLO") {
+    fun sayHelloTo(name: String) = hystrixCommand("HELLO") {
         Thread.sleep(1000)
         "Hello $name"
     }
 
-    fun command3() = hystrixCommand("MOTD") {
+    fun getMessageOfTheDay() = hystrixCommand("MOTD") {
         Thread.sleep(1000)
         "have a nice day"
     }
