@@ -2,6 +2,7 @@ package websockets
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import mu.KotlinLogging
+import org.assertj.core.api.KotlinAssertions
 import org.awaitility.Awaitility
 import org.hamcrest.Matchers
 import org.junit.Before
@@ -25,8 +26,6 @@ import java.lang.reflect.Type
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.test.fail
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -53,27 +52,27 @@ class GreetingIntegrationTests {
         val transports = ArrayList<Transport>().apply {
             add(WebSocketTransport(StandardWebSocketClient()))
         }
-        this.sockJsClient = SockJsClient(transports)
 
-        this.stompClient = WebSocketStompClient(sockJsClient)
-        this.stompClient.messageConverter = MappingJackson2MessageConverter().apply {
+        sockJsClient = SockJsClient(transports)
+
+        stompClient = WebSocketStompClient(sockJsClient)
+
+        stompClient.messageConverter = MappingJackson2MessageConverter().apply {
             setPrettyPrint(true)
             objectMapper = jacksonObjectMapper()
         }
     }
 
-    @Test
-    fun getGreeting() {
-
-        val latch = CountDownLatch(1)
-
-        val handler = object : TestSessionHandler(collector) {
+    private fun createHandler(latch: CountDownLatch): TestSessionHandler {
+        return object : TestSessionHandler(collector) {
 
             override fun afterConnected(session: StompSession, connectedHeaders: StompHeaders?) {
 
                 logger.info { "connected ${session.isConnected} $connectedHeaders" }
 
-                session.subscribe("/user/queue/reply", object: StompFrameHandler {
+                val subscriptions = mutableListOf<StompSession.Subscription>()
+
+                val reply = session.subscribe("/user/queue/reply", object : StompFrameHandler {
                     override fun getPayloadType(headers: StompHeaders): Type {
                         return Greeting::class.java
                     }
@@ -83,7 +82,9 @@ class GreetingIntegrationTests {
                     }
                 })
 
-                session.subscribe("/topic/greetings", object : StompFrameHandler {
+                subscriptions.add(reply)
+
+                val greetings = session.subscribe("/topic/greetings", object : StompFrameHandler {
                     override fun getPayloadType(headers: StompHeaders): Type {
                         return Greeting::class.java
                     }
@@ -94,11 +95,17 @@ class GreetingIntegrationTests {
                         try {
                             collector.checkThat(content, Matchers.equalTo("Hello, Spring!"))
                         } finally {
+                            subscriptions.forEach {
+                                it.unsubscribe()
+                            }
+
                             session.disconnect()
                             latch.countDown()
                         }
                     }
                 })
+
+                subscriptions.add(greetings)
 
                 try {
                     session.send("/app/hello", HelloMessage("Spring"))
@@ -110,10 +117,20 @@ class GreetingIntegrationTests {
                 }
             }
         }
+    }
 
-        stompClient.connect("ws://localhost:{port}/gs-guide-websocket", this.headers, handler, this.port)
+    @Test
+    fun getGreeting() {
 
-        Awaitility.await().until { latch.await(1, TimeUnit.SECONDS) }
+        val latch = CountDownLatch(1)
+
+        val handler = createHandler(latch)
+
+        stompClient.connect("ws://localhost:{port}/gs-guide-websocket", headers, handler, port)
+
+        val result = latch.await(30, TimeUnit.SECONDS)
+
+        KotlinAssertions.assertThat(result).isTrue()
     }
 
     private open inner class TestSessionHandler(private val failure: ErrorCollector) : StompSessionHandlerAdapter() {

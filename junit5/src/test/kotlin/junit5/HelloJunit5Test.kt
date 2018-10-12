@@ -1,8 +1,8 @@
 package junit5
 
+import org.assertj.core.api.Assumptions.assumeThat
 import org.assertj.core.api.KotlinAssertions
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 
 class HelloJunit5Test {
     @Test
@@ -12,8 +12,6 @@ class HelloJunit5Test {
 
     @Test
     fun aFailingTest() {
-        fail {
-           "bla"
-        }
+        assumeThat(false).isTrue()
     }
 }

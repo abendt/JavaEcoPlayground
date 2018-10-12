@@ -7,6 +7,7 @@ import org.springframework.messaging.handler.annotation.SendTo
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
 import org.springframework.web.socket.messaging.SessionConnectedEvent
+import org.springframework.web.socket.messaging.SessionDisconnectEvent
 import org.springframework.web.socket.messaging.SessionSubscribeEvent
 import org.springframework.web.util.HtmlUtils
 
@@ -26,14 +27,18 @@ class GreetingController(val messagingTemplate: SimpMessagingTemplate) {
         return Greeting("Hello, " + HtmlUtils.htmlEscape(message.name) + "!")
     }
 
-
     @EventListener
     fun onSessionConnect(event: SessionConnectedEvent) {
-        println("Session connected")
+        logger.info("Session connected")
     }
 
     @EventListener
     fun onSubscribe(event: SessionSubscribeEvent) {
-        println("Session subscribed " + event.message)
+        logger.info("Session subscribed " + event.message)
+    }
+
+    @EventListener
+    fun onSessionDisConnect(event: SessionDisconnectEvent) {
+        logger.info("Session disconnected " + event)
     }
 }

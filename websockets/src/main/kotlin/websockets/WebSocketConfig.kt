@@ -11,10 +11,8 @@ import org.springframework.web.socket.WebSocketHandler
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry
-import org.springframework.web.socket.server.HandshakeHandler
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler
 import java.security.Principal
-
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -27,27 +25,25 @@ class WebSocketConfig : AbstractWebSocketMessageBrokerConfigurer() {
                 .withSockJS()
     }
 
-    private fun handshakeHandler(): HandshakeHandler {
-        return object : DefaultHandshakeHandler() {
-            override fun determineUser(
-                    request: ServerHttpRequest,
-                    wsHandler: WebSocketHandler,
-                    attributes: MutableMap<String, Any>
-            ): Principal {
-                if (request is ServletServerHttpRequest) {
-                    val servletRequest = request.servletRequest
-                    val cookie = servletRequest.getHeader(HttpHeaders.COOKIE)
+    private fun handshakeHandler() = object : DefaultHandshakeHandler() {
+        override fun determineUser(
+                request: ServerHttpRequest,
+                wsHandler: WebSocketHandler,
+                attributes: MutableMap<String, Any>
+        ): Principal {
+            if (request is ServletServerHttpRequest) {
+                val servletRequest = request.servletRequest
+                val cookie = servletRequest.getHeader(HttpHeaders.COOKIE)
 
-                    attributes["token"] = cookie
-                }
-
-                return UserPrincipal("myuser")
+                attributes["token"] = cookie
             }
+
+            return UserPrincipal("myuser")
         }
     }
 
     override fun configureMessageBroker(config: MessageBrokerRegistry) {
-        config.enableSimpleBroker("/topic", "/queue")
+        config.enableStompBrokerRelay("/topic", "/queue")
         config.setApplicationDestinationPrefixes("/app")
     }
 

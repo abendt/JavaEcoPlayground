@@ -2,7 +2,7 @@ import com.adarshr.gradle.testlogger.TestLoggerExtension
 
 plugins {
     kotlin("jvm")
-    id("com.adarshr.test-logger") version "1.2.0"
+    id("com.adarshr.test-logger") version "1.3.0"
 }
 
 configure<TestLoggerExtension> {
