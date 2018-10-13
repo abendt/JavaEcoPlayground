@@ -3,7 +3,6 @@ package websockets
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import mu.KotlinLogging
 import org.assertj.core.api.KotlinAssertions
-import org.awaitility.Awaitility
 import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Rule
@@ -20,16 +19,13 @@ import org.springframework.web.socket.WebSocketHttpHeaders
 import org.springframework.web.socket.client.standard.StandardWebSocketClient
 import org.springframework.web.socket.messaging.WebSocketStompClient
 import org.springframework.web.socket.sockjs.client.SockJsClient
-import org.springframework.web.socket.sockjs.client.Transport
 import org.springframework.web.socket.sockjs.client.WebSocketTransport
-import java.lang.reflect.Type
-import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class GreetingIntegrationTests {
+class GreetingIT {
 
     val logger = KotlinLogging.logger {}
 
@@ -70,28 +66,27 @@ class GreetingIntegrationTests {
                 val subscriptions = mutableListOf<StompSession.Subscription>()
 
                 val reply = session.subscribe("/user/queue/reply", object : StompFrameHandler {
-                    override fun getPayloadType(headers: StompHeaders): Type {
-                        return Greeting::class.java
-                    }
+                    override fun getPayloadType(headers: StompHeaders) = Greeting::class.java
 
                     override fun handleFrame(headers: StompHeaders, payload: Any) {
-                        println("XXX: " + payload)
+                        logger.info { "reply $payload"}
                     }
                 })
 
                 subscriptions.add(reply)
 
                 val greetings = session.subscribe("/topic/greetings", object : StompFrameHandler {
-                    override fun getPayloadType(headers: StompHeaders): Type {
-                        return Greeting::class.java
-                    }
+                    override fun getPayloadType(headers: StompHeaders) = Greeting::class.java
 
                     override fun handleFrame(headers: StompHeaders, payload: Any) {
                         val (content) = payload as Greeting
 
+                        logger.info { "/topic/greetings $content" }
+
                         try {
                             collector.checkThat(content, Matchers.equalTo("Hello, Spring!"))
                         } finally {
+                            logger.info { "disconnect" }
                             subscriptions.forEach {
                                 it.unsubscribe()
                             }
@@ -109,6 +104,7 @@ class GreetingIntegrationTests {
 
                     logger.info { "Sent hello!" }
                 } catch (t: Throwable) {
+                    logger.warn(t) { "session send" }
                     collector.addError(t)
                     latch.countDown()
                 }
@@ -132,15 +128,15 @@ class GreetingIntegrationTests {
 
     private open inner class TestSessionHandler(private val failure: ErrorCollector) : StompSessionHandlerAdapter() {
 
-        override fun handleFrame(headers: StompHeaders?, payload: Any?) {
-            failure.addError(Exception(headers!!.toString()))
+        override fun handleFrame(headers: StompHeaders, payload: Any?) {
+            failure.addError(Exception(headers.toString()))
         }
 
-        override fun handleException(s: StompSession?, c: StompCommand?, h: StompHeaders?, p: ByteArray?, ex: Throwable?) {
+        override fun handleException(s: StompSession, c: StompCommand?, h: StompHeaders, p: ByteArray, ex: Throwable) {
             failure.addError(ex)
         }
 
-        override fun handleTransportError(session: StompSession?, ex: Throwable?) {
+        override fun handleTransportError(session: StompSession, ex: Throwable) {
             failure.addError(ex)
         }
     }
