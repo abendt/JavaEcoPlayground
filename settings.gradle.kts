@@ -1,1 +1,1 @@
-include("logging", "jackson", "javadoc", "hystrix", "junit5", "websockets", "async-rest-coroutines")
+include("logging", "jackson", "javadoc", "hystrix", "junit5", "websockets", "async-rest-coroutines", "http4k")
