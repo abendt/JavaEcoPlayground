@@ -7,15 +7,15 @@ buildscript {
     }
 
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.13.RELEASE")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.15.RELEASE")
     }
 }
 
 plugins {
     kotlin("jvm")
-    id("org.jetbrains.kotlin.plugin.spring") version "1.2.41"
-    id("org.springframework.boot") version "1.5.13.RELEASE"
-    id("io.spring.dependency-management") version "1.0.5.RELEASE"
+    id("org.jetbrains.kotlin.plugin.spring") version "1.2.71"
+    id("org.springframework.boot") version "1.5.15.RELEASE"
+    id("io.spring.dependency-management") version "1.0.6.RELEASE"
 }
 
 repositories {
