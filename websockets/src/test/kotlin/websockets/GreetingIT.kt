@@ -10,8 +10,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ErrorCollector
 import org.junit.runner.RunWith
-import org.springframework.boot.context.embedded.LocalServerPort
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpHeaders
 import org.springframework.messaging.converter.MappingJackson2MessageConverter
 import org.springframework.messaging.simp.stomp.*
@@ -36,8 +36,6 @@ class GreetingIntegrationTests {
     @LocalServerPort
     private val port: Int = 0
 
-    lateinit var sockJsClient: SockJsClient
-
     lateinit var stompClient: WebSocketStompClient
 
     private val headers = WebSocketHttpHeaders(HttpHeaders().apply {
@@ -49,17 +47,16 @@ class GreetingIntegrationTests {
 
     @Before
     fun setup() {
-        val transports = ArrayList<Transport>().apply {
-            add(WebSocketTransport(StandardWebSocketClient()))
-        }
+        val transports = listOf(
+                WebSocketTransport(StandardWebSocketClient()))
 
-        sockJsClient = SockJsClient(transports)
+        val sockJsClient = SockJsClient(transports)
 
-        stompClient = WebSocketStompClient(sockJsClient)
-
-        stompClient.messageConverter = MappingJackson2MessageConverter().apply {
-            setPrettyPrint(true)
-            objectMapper = jacksonObjectMapper()
+        stompClient = WebSocketStompClient(sockJsClient).apply {
+            messageConverter = MappingJackson2MessageConverter().apply {
+                setPrettyPrint(true)
+                objectMapper = jacksonObjectMapper()
+            }
         }
     }
 
